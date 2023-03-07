@@ -71,14 +71,27 @@ def group_by_month(master_list):
         year_month = timestamp[:7]
 
         #extract the name of the song
-        name = song['master_metadata_track_name']
+        try:
+            name = song['master_metadata_track_name']
+        except KeyError:
+            # If the 'master_metadata_track_name' key is missing, try using the 'track_name' key instead
+            try:
+                name = song['track_name']
+            except KeyError:
+                # If neither key is present, skip this song
+                continue
 
         #makes a new key value pair for every month
         if year_month not in monthly_stats:
             monthly_stats[year_month] = []
         monthly_stats[year_month].append(name)
 
+    # sort the dictionary by month
+    monthly_stats = dict(sorted(monthly_stats.items(), key=lambda x: x[0]))
+
     return monthly_stats
+
+
 
 def rank(monthly_stats):
     """
@@ -88,21 +101,21 @@ def rank(monthly_stats):
     """
     song_rankings = dict()
 
-    #makes it a touple with the first object being the year-month and the scond the list of songs
+    # makes it a tuple with the first object being the year-month and the second the list of songs
     for month, songs in monthly_stats.items():
-            ranking = dict()
-            for song in songs:
-                name = song['master_metadata_track_name']
-                if name in ranking:
-                    ranking[name] += 1
-                else:
-                    ranking[name] = 1
-            #using the sorted function to sort while turing it into a list
-            #of touples and then turning it into a dict after 
-            sorted_ranking = dict(sorted(ranking.items(), key=lambda item: item[1], reverse=True))
-            song_rankings[month] = sorted_ranking
+        ranking = dict()
+        for song in songs:
+            if song in ranking:
+                ranking[song] += 1
+            else:
+                ranking[song] = 1
+        # using the sorted function to sort while turning it into a list
+        # of tuples and then turning it into a dict after 
+        sorted_ranking = dict(sorted(ranking.items(), key=lambda item: item[1], reverse=True))
+        song_rankings[month] = sorted_ranking
 
     return song_rankings
+
 
 def chop(rankings):
     """
@@ -123,15 +136,19 @@ def chop(rankings):
 
 def show(final_list):
     """
-    prints out final list in a formated way
+    prints out final list in a formatted way
     """
+    try:
+        with open('results.txt', 'w') as f:
+            for month, songs in final_list.items():
+                f.write(f"For the year-month: {month} your top songs were:")
+                f.write("\n")
+                for song in songs:
+                    f.write(f" {song},")
+                f.write("\n")
+    except IOError:
+        print("Error: Failed to write results to file.")
 
-    for month in final_list:
-        songs = []
-        print(f"For the year-month: {month} your top songs were:")
-        for song in month:
-            songs.append(song)
-        print(songs)
 
 
 if __name__ == "__main__":
