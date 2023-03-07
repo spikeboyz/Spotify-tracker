@@ -58,7 +58,7 @@ def group_by_month(master_list):
     """
     Takes in the master list of the combined json files and returns a list
     of dictionaries where the key is the date in year/month and the value
-    is a list of the songs listlened to in that month
+    is a list of the songs listened to in that month
     """
 
     monthly_stats = dict()
@@ -81,15 +81,14 @@ def group_by_month(master_list):
                 # If neither key is present, skip this song
                 continue
 
-        #makes a new key value pair for every month
-        if year_month not in monthly_stats:
-            monthly_stats[year_month] = []
-        monthly_stats[year_month].append(name)
-
-    # sort the dictionary by month
-    monthly_stats = dict(sorted(monthly_stats.items(), key=lambda x: x[0]))
+        if name is not None:
+            #makes a new key value pair for every month
+            if year_month not in monthly_stats:
+                monthly_stats[year_month] = []
+            monthly_stats[year_month].append(name)
 
     return monthly_stats
+
 
 
 
