@@ -1,30 +1,43 @@
 import os
-import datetime
 import json
 
 
 def main():
-    #ask for the folder
-    folder = input("input folder with spotify json files:")
+    try:
+        #ask for the folder
+        folder = input("input folder with spotify json files:")
 
-    # creates the full path to the folder
-    full_path = os.path.expanduser(folder)
+        # creates the full path to the folder
+        full_path = os.path.expanduser(folder)
 
-    # finds all files in the folder
-    files = os.listdir(full_path)
+        # finds all files in the folder
+        files = os.listdir(full_path)
 
-    # puts all the json files from the folder into a list
-    json_files = [os.path.join(full_path, f) for f in files if f.endswith('.json')]
+        # puts all the json files from the folder into a list
+        json_files = [os.path.join(full_path, f) for f in files if f.endswith('.json')]
 
-    #merges all the files into a list
-    master_list = merge_files(json_files)
+        #merges all the files into a list
+        master_list = merge_files(json_files)
 
-    #groups the songs by month in a dictionary
-    monthly_stats = group_by_month(master_list)
+        #groups the songs by month in a dictionary
+        monthly_stats = group_by_month(master_list)
 
-    rankings = rank(monthly_stats)
+        #makes a new dict with the songs ranked by month
+        rankings = rank(monthly_stats)
 
-    print(master_list)
+        #makes it so that every month has a max of 30 songs
+        final_list = chop(rankings)
+
+        #show results 
+        show(final_list)
+
+    except ValueError as ve:
+        print(f"Invalid input: {ve}")
+    except OSError as oe:
+        print(f"Error reading directory or files: {oe}")
+    except Exception as e:
+        print(f"Error: {e}")
+
     
 
 
@@ -84,10 +97,42 @@ def rank(monthly_stats):
                     ranking[name] += 1
                 else:
                     ranking[name] = 1
+            #using the sorted function to sort while turing it into a list
+            #of touples and then turning it into a dict after 
             sorted_ranking = dict(sorted(ranking.items(), key=lambda item: item[1], reverse=True))
             song_rankings[month] = sorted_ranking
 
     return song_rankings
+
+def chop(rankings):
+    """
+    Limits the number of songs of every month to 30
+    """
+    final_rankings = {}
+
+    for month, songs in rankings.items():
+        final_rankings[month] = []
+        counter = 0
+        for song in songs:
+            if counter == 30:
+                break
+            final_rankings[month].append(song)
+            counter += 1
+                
+    return final_rankings
+
+def show(final_list):
+    """
+    prints out final list in a formated way
+    """
+
+    for month in final_list:
+        songs = []
+        print(f"For the year-month: {month} your top songs were:")
+        for song in month:
+            songs.append(song)
+        print(songs)
+
 
 if __name__ == "__main__":
     main()
